@@ -38,11 +38,50 @@ fn sort_locations(){
                     }
                 }
             }
-            let first_column_size = first_column.len();
-            let second_column_size = second_column.len();
+            
+            first_column.sort();
+            second_column.sort();
 
-            println!("First Column: {first_column_size}");
-            println!("Second Column: {second_column_size}");
+            let mut i = 0;
+            let mut running_total = 0;
+            let list_length = first_column.len();
+
+            while i < list_length{
+                
+                let left_value = first_column[i];
+                let right_value = second_column[i];
+
+                let difference = if left_value > right_value 
+                {left_value - right_value} else 
+                {right_value - left_value};
+
+                running_total += difference;
+
+                i += 1;
+            }
+
+            let mut similarity_score = 0;
+
+
+            for left_value in first_column{
+
+                let mut occurrences = 0;
+
+                for right_value in &second_column {
+
+                    if left_value == *right_value{
+                        occurrences += 1;
+                    }
+
+                }
+
+                similarity_score += left_value * occurrences;
+
+            }
+
+            println!("{similarity_score}");
+
+            println!("{running_total}");
 
         }
         Err(error) => {
