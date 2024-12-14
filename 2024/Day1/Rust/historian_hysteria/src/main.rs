@@ -85,7 +85,7 @@ fn sort_locations(){
 
         }
         Err(error) => {
-
+            println!("Error occurred attempting to filter location ids... ({error})");
         }
     };
 }
