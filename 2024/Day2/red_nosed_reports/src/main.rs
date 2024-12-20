@@ -1,4 +1,7 @@
+mod handlers;
+
 use std::{fs, io::{self, BufRead}};
+use handlers::red_nosed_report_context::RedNosedReportContext;
 
 fn main() {
     siphon_safe_reports();
@@ -30,25 +33,48 @@ fn siphon_safe_reports(){
                                 .unwrap())
                             .collect();
 
-                            let mut levels_count = 0;
+                        let increasing_levels = levels.windows(2).all(|level| 
+                            level[0] < level[1] && (level[1] - level[0]) <= 3);
 
-                        while (levels_count + 1 <= levels.len()){
+                        let decreasing_levels = levels.windows(2).all(|level|
+                            level[0] > level[1] && (level[0] - level[1]) <= 3);
 
-                            if levels[levels_count] == levels[levels_count + 1] {
-                                return;
-                            }
-                            else if levels[levels_count] > levels[levels_count + 1] {
-
-                            }
+                        if increasing_levels || decreasing_levels{
+                            safe_report_count += 1;
+                            continue;
                         }
 
+                        let report_length = levels.len();
+                        let mut level_position = 0;
 
+                        while level_position < report_length{
+
+                            let mut unsafe_levels = levels.clone();
+                            unsafe_levels.remove(level_position);
+
+                            let is_increasing = unsafe_levels.windows(2).all(|level|
+                                level[0] < level[1] && (level[1] - level[0]) <= 3);
+
+                            
+                            let is_decreasing = unsafe_levels.windows(2).all(|level|
+                                level[0] > level[1] && (level[0] - level[1]) <= 3);
+
+                            if is_increasing || is_decreasing {
+                                safe_report_count += 1;
+                                break;
+                            }
+
+                            level_position += 1;
+
+                        }
                     }
                     Err(error) => {
-
+                        println!("Error occurred collecting safe reports ({error})")
                     }
                 }
             }
+
+            println!("{}", safe_report_count);
 
         } Err(error) => {
             
