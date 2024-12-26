@@ -1,7 +1,4 @@
-mod handlers;
-
 use std::{fs, io::{self, BufRead}};
-use handlers::red_nosed_report_context::RedNosedReportContext;
 
 fn main() {
     siphon_safe_reports();
@@ -26,6 +23,7 @@ fn siphon_safe_reports(){
                 match line {
                     Ok(report) => {
 
+                        // Collect each report as a vector of integers
                         let levels: Vec<i32> = report
                             .split_whitespace()
                             .map(|s| s
@@ -33,18 +31,15 @@ fn siphon_safe_reports(){
                                 .unwrap())
                             .collect();
 
-                        let increasing_levels = levels.windows(2).all(|level| 
-                            level[0] < level[1] && (level[1] - level[0]) <= 3);
-
-                        let decreasing_levels = levels.windows(2).all(|level|
-                            level[0] > level[1] && (level[0] - level[1]) <= 3);
-
-                        if increasing_levels || decreasing_levels{
+                        // Check if the report is safe and continue loop if so
+                        if is_report_safe(&levels){
                             safe_report_count += 1;
                             continue;
                         }
 
+                        // If report was unsafe, see if it is safe with a level removed
                         let report_length = levels.len();
+
                         let mut level_position = 0;
 
                         while level_position < report_length{
@@ -52,14 +47,7 @@ fn siphon_safe_reports(){
                             let mut unsafe_levels = levels.clone();
                             unsafe_levels.remove(level_position);
 
-                            let is_increasing = unsafe_levels.windows(2).all(|level|
-                                level[0] < level[1] && (level[1] - level[0]) <= 3);
-
-                            
-                            let is_decreasing = unsafe_levels.windows(2).all(|level|
-                                level[0] > level[1] && (level[0] - level[1]) <= 3);
-
-                            if is_increasing || is_decreasing {
+                            if is_report_safe(&unsafe_levels){
                                 safe_report_count += 1;
                                 break;
                             }
@@ -69,7 +57,7 @@ fn siphon_safe_reports(){
                         }
                     }
                     Err(error) => {
-                        println!("Error occurred collecting safe reports ({error})")
+                        println!("Error occurred collecting safe reports ({error})");
                     }
                 }
             }
@@ -77,7 +65,20 @@ fn siphon_safe_reports(){
             println!("{}", safe_report_count);
 
         } Err(error) => {
-            
+            println!("Error opening report ({error})");
         }
     }
+}
+
+// Returns a bool that determines if the report is safe or not.
+fn is_report_safe(report: &Vec<i32>) -> bool {
+
+    let is_increasing = report.windows(2).all(|level|
+        level[0] < level[1] && (level[1] - level[0]) <= 3);
+
+    let is_decreasing = report.windows(2).all(|level|
+        level[0] > level[1] && (level[0] - level[1]) <= 3);
+
+    return is_increasing || is_decreasing
+
 }
