@@ -1,40 +1,57 @@
 from report import Report
 
 def main():
-    collect_reports()
+    reports = collect_reports()
+    fix_problem_dampener(reports)
 
-def collect_reports():
+    print(len([report for report in reports if report.is_safe == True]))
 
-    safe_reports = 0
+def collect_reports() -> list[Report]:
 
     reports = []
 
     with open("unusual_data.txt", "r") as file:
         for report in file:
-            levels = report.strip().split()
+            levels = list(map(int, report.strip().split()))
 
             max_difference = 3
 
-            is_increasing = all(
-                is_pair_increasing(int(level), int(next_level), max_difference)
-                  for level, next_level in zip(levels, levels[1:]))
+            is_increasing = is_level_increasing(levels, max_difference)
             
-            is_decreasing = all(
-                is_pair_decreasing(int(level), int(next_level), max_difference)
-                  for level, next_level in zip(levels, levels[1:]))
+            is_decreasing = is_level_decreasing(levels, max_difference)
             
             if (is_increasing or is_decreasing):
-                reports.append(Report(int(levels), True))
-                
+                reports.append(Report(list(map(int, levels)), True))
+            else:
+                reports.append(Report(list(map(int, levels)), False))
 
-        
-        print(safe_reports)
+    return reports
+
+def fix_problem_dampener(reports: list[Report]):
+    
+    max_difference = 3
+
+    for report in [report for report in reports if report.is_safe == False]:
+
+        for level_index in range(len(report.levels)):
+            levels_copy = report.levels.copy()
+
+            del levels_copy[level_index]
+
+            for level in range(len(levels_copy)):
+
+                is_increasing = is_level_increasing(levels_copy, max_difference)
+
+                is_decreasing = is_level_decreasing(levels_copy, max_difference)
+
+                if (is_increasing or is_decreasing):
+                    report.is_safe = True
             
-def is_pair_increasing(level: int, next_level: int, max_difference: int):
-    return level < next_level and next_level - level <= max_difference
+def is_level_increasing(levels: list[int], max_difference: int) -> bool:
+    return all(level < next_level and next_level - level <= max_difference for level, next_level in zip(levels, levels[1:]))
 
-def is_pair_decreasing(level: int, next_level: int, max_difference: int):
-    return level > next_level and level - next_level <= max_difference
-   
+def is_level_decreasing(levels: list[int], max_difference: int) -> bool:
+   return all(level > next_level and level - next_level <= max_difference for level, next_level in zip(levels, levels[1:]))
+
 if __name__ == "__main__":
     main()
